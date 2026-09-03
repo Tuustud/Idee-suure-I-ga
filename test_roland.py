@@ -1,0 +1,1 @@
+print(f"Tere!\nMinu nimi on Roland.P")
