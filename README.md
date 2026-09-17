@@ -10,3 +10,5 @@ kui oled juba projektis sees: https://trello.com/b/FXI89eAi
 Meie ideedegeneraatori algallikas: https://www.youtube.com/watch?v=rnZorHI_Y28
 
 Veebilehe link: https://ideesuureiga.pythonanywhere.com/
+
+Paberdisain (POOLIK): https://canva.link/ehgepysrctvos2q
