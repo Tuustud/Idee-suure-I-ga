@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vaba aeg</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #111;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .box {
+            width: min(90%, 500px);
+            padding: 35px;
+            text-align: center;
+            border: 2px solid white;
+            border-radius: 16px;
+            background: #1b1b1b;
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 28px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            border: 1px solid #777;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #result {
+            margin-top: 22px;
+            font-size: 18px;
+            line-height: 1.4;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 18px;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="box">
+        <h1>Kui palju vaba aega sul on?</h1>
+
+        <form id="free-time-form">
+            <input id="free-time-input" type="text" placeholder="Näiteks 2 tundi" required>
+            <button type="submit">Sisesta</button>
+        </form>
+
+        <p id="result"></p>
+
+        <a class="back-link" href="{{ url_for('home') }}">Tagasi</a>
+    </div>
+
+    <script>
+        const form = document.getElementById("free-time-form");
+        const result = document.getElementById("result");
+
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            result.textContent = "This site doesnt work yet, find yourself something to do";
+        });
+    </script>
+
+</body>
+</html>
