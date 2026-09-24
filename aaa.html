@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vaba aeg</title>
+
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #111;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 24px;
+        }
+
+        .box {
+            width: min(90%, 500px);
+            padding: 35px;
+            text-align: center;
+            border: 2px solid white;
+            border-radius: 16px;
+            background: #1b1b1b;
+        }
+
+        h1 {
+            margin: 0 0 12px;
+            font-size: 28px;
+        }
+
+        .question {
+            margin-top: 28px;
+            text-align: left;
+        }
+
+        .question:first-of-type {
+            margin-top: 20px;
+        }
+
+        label,
+        .question-title {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .time-row {
+            display: grid;
+            grid-template-columns: 1fr 120px;
+            gap: 10px;
+        }
+
+        .location-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: stretch;
+        }
+
+        input,
+        select,
+        .dropdown-button,
+        .search-location-button {
+            width: 100%;
+            min-height: 46px;
+            padding: 12px;
+            border: 1px solid #777;
+            border-radius: 8px;
+            background: white;
+            color: #111;
+            font-size: 16px;
+        }
+
+        input:focus,
+        select:focus,
+        .dropdown-button:focus,
+        .search-location-button:focus {
+            outline: 2px solid white;
+            outline-offset: 2px;
+        }
+
+        .search-location-button {
+            width: auto;
+            min-width: 88px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .search-location-button:hover {
+            background: #e6e6e6;
+        }
+
+        .location-status {
+            display: none;
+            margin-top: 8px;
+            color: #ccc;
+            font-size: 13px;
+            line-height: 1.35;
+        }
+
+        .location-status.show {
+            display: block;
+        }
+
+        .multi-select {
+            position: relative;
+        }
+
+        .dropdown-button {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .dropdown-button::after {
+            content: "▾";
+            font-size: 18px;
+            margin-left: 10px;
+        }
+
+        .dropdown-button.open::after {
+            content: "▴";
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: calc(100% + 8px);
+            z-index: 20;
+            padding: 8px;
+            border: 1px solid #777;
+            border-radius: 8px;
+            background: white;
+            color: #111;
+            text-align: left;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: normal;
+            margin: 0;
+        }
+
+        .dropdown-option:hover {
+            background: #ececec;
+        }
+
+        .dropdown-option input {
+            width: auto;
+            min-height: auto;
+            margin: 0;
+            padding: 0;
+        }
+
+        .submit-button {
+            width: 100%;
+            margin-top: 30px;
+            padding: 13px 24px;
+            border: none;
+            border-radius: 8px;
+            background: white;
+            color: #111;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .submit-button:hover {
+            background: #e6e6e6;
+        }
+
+        #result {
+            margin-top: 22px;
+            font-size: 16px;
+            line-height: 1.5;
+            min-height: 24px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 18px;
+            color: #ccc;
+        }
+
+        .error {
+            color: #ffb3b3;
+        }
+
+        /* Kaardi hüpikaken */
+        .map-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.78);
+            padding: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .map-modal.show {
+            display: flex;
+        }
+
+        .map-dialog {
+            width: min(900px, 96vw);
+            background: #1b1b1b;
+            border: 2px solid white;
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 18px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        .map-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .map-header h2 {
+            margin: 0;
+            font-size: 21px;
+        }
+
+        .close-map-button {
+            width: 42px;
+            height: 42px;
+            border: none;
+            border-radius: 8px;
+            background: white;
+            color: #111;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        #map {
+            width: 100%;
+            height: min(58vh, 520px);
+            min-height: 320px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        /* Leafleti põhistiilide varuvariant. */
+        #map.leaflet-container {
+            position: relative;
+            overflow: hidden;
+            background: #ddd;
+            outline: 0;
+        }
+
+        #map .leaflet-pane,
+        #map .leaflet-tile,
+        #map .leaflet-marker-icon,
+        #map .leaflet-marker-shadow,
+        #map .leaflet-tile-container,
+        #map .leaflet-pane > svg,
+        #map .leaflet-pane > canvas,
+        #map .leaflet-zoom-box,
+        #map .leaflet-image-layer,
+        #map .leaflet-layer {
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        #map .leaflet-tile {
+            width: 256px;
+            height: 256px;
+            max-width: none !important;
+            max-height: none !important;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        #map .leaflet-map-pane,
+        #map .leaflet-tile-pane,
+        #map .leaflet-overlay-pane,
+        #map .leaflet-shadow-pane,
+        #map .leaflet-marker-pane,
+        #map .leaflet-tooltip-pane,
+        #map .leaflet-popup-pane {
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        #map .leaflet-map-pane { z-index: 400; }
+        #map .leaflet-tile-pane { z-index: 200; }
+        #map .leaflet-overlay-pane { z-index: 400; }
+        #map .leaflet-shadow-pane { z-index: 500; }
+        #map .leaflet-marker-pane { z-index: 600; }
+        #map .leaflet-tooltip-pane { z-index: 650; }
+        #map .leaflet-popup-pane { z-index: 700; }
+
+        #map .leaflet-control-container .leaflet-top,
+        #map .leaflet-control-container .leaflet-bottom {
+            position: absolute;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        #map .leaflet-top { top: 0; }
+        #map .leaflet-right { right: 0; }
+        #map .leaflet-bottom { bottom: 0; }
+        #map .leaflet-left { left: 0; }
+
+        #map .leaflet-control {
+            position: relative;
+            z-index: 800;
+            pointer-events: auto;
+            margin: 10px;
+        }
+
+        #map .leaflet-control-zoom a {
+            display: block;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            text-decoration: none;
+            background: white;
+            color: #111;
+            font-size: 20px;
+        }
+
+        #map .leaflet-control-zoom a + a {
+            border-top: 1px solid #ccc;
+        }
+
+        .map-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .map-action-button {
+            flex: 1 1 210px;
+            min-height: 46px;
+            border: none;
+            border-radius: 8px;
+            background: white;
+            color: #111;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 11px 14px;
+        }
+
+        .map-action-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #map-message {
+            margin: 10px 0 0;
+            min-height: 20px;
+            color: #ddd;
+            font-size: 14px;
+        }
+
+        @media (max-width: 520px) {
+            body {
+                padding: 14px;
+            }
+
+            .box {
+                width: 100%;
+                padding: 24px 18px;
+            }
+
+            .time-row {
+                grid-template-columns: 1fr 105px;
+            }
+
+            .location-row {
+                grid-template-columns: 1fr;
+            }
+
+            .search-location-button {
+                width: 100%;
+            }
+
+            .map-modal {
+                padding: 10px;
+            }
+
+            .map-dialog {
+                padding: 12px;
+            }
+
+            #map {
+                height: 52vh;
+                min-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="box">
+        <h1>Tee oma valikud ja ma genereerin sulle tegevuse!</h1>
+
+        <form id="free-time-form" action="/generate" method="POST">
+            <div class="question">
+                <label for="free-time-input">Kui palju vaba aega sul on?</label>
+                <div class="time-row">
+                    <input
+                        id="free-time-input"
+                        name="free_time"
+                        type="text"
+                        inputmode="decimal"
+                        placeholder="Näiteks 1,5"
+                        autocomplete="off"
+                        required
+                    >
+
+                    <select id="time-unit" name="time_unit" aria-label="Ajaühik">
+                        <option value="min">minutit</option>
+                        <option value="h">tundi</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="question">
+                <label for="location">Kus sa asud?</label>
+
+                <div class="location-row">
+                    <select id="location" name="location" required>
+                        <option value="" selected disabled>Vali asukoht</option>
+                        <option value="Haigla ooteruum">Haigla ooteruum</option>
+                        <option value="Bussipeatus/jaam">Bussipeatus/jaam</option>
+                        <option value="Park">Park</option>
+                        <option value="Raamatukogu">Raamatukogu</option>
+                        <option value="Buss">Buss</option>
+                        <option value="Mitte midagi sobivat">Mitte midagi sobivat</option>
+                        <option value="Kaardilt valitud asukoht" id="map-location-option" hidden>Kaardilt valitud asukoht</option>
+                    </select>
+
+                    <button class="search-location-button" id="open-map-button" type="button">
+                        Otsi
+                    </button>
+                </div>
+
+                <div class="location-status" id="location-status"></div>
+            </div>
+
+            <div class="question">
+                <span class="question-title">Mis vahendid sul käeulatuses on?</span>
+
+                <div class="multi-select" id="tools-select">
+                    <button
+                        class="dropdown-button"
+                        id="tools-button"
+                        type="button"
+                        aria-expanded="false"
+                    >
+                        Vali vahend(id)
+                    </button>
+
+                    <div class="dropdown-menu" id="tools-menu">
+                        <label class="dropdown-option">
+                            <input type="checkbox" name="tools" value="Pliiats">
+                            Pliiats
+                        </label>
+
+                        <label class="dropdown-option">
+                            <input type="checkbox" name="tools" value="Paber">
+                            Paber
+                        </label>
+
+                        <label class="dropdown-option">
+                            <input type="checkbox" name="tools" value="Raamat">
+                            Raamat
+                        </label>
+
+                        <label class="dropdown-option">
+                            <input type="checkbox" name="tools" value="Laetud telefon">
+                            Laetud telefon
+                        </label>
+
+                        <label class="dropdown-option">
+                            <input type="checkbox" name="tools" value="Teine isik (võõras)">
+                            Teine isik (võõras)
+                        </label>
+
+                        <label class="dropdown-option">
+                            <input type="checkbox" name="tools" value="Teine isik (tuttav)">
+                            Teine isik (tuttav)
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <button class="submit-button" type="submit">Genereeri tegevus</button>
+        </form>
+
+        <p id="result"></p>
+
+        <a class="back-link" href="{{ url_for('home') }}">Tagasi</a>
+    </div>
+
+    <!-- Kaardiaken -->
+    <div class="map-modal" id="map-modal" aria-hidden="true">
+        <div class="map-dialog" role="dialog" aria-modal="true" aria-labelledby="map-title">
+            <div class="map-header">
+                <h2 id="map-title">Vali asukoht kaardilt</h2>
+                <button class="close-map-button" id="close-map-button" type="button" aria-label="Sulge kaart">×</button>
+            </div>
+
+            <div id="map"></div>
+
+            <div class="map-actions">
+                <button class="map-action-button" id="use-device-location" type="button">
+                    Kasuta minu asukohta
+                </button>
+
+                <button class="map-action-button" id="confirm-map-location" type="button" disabled>
+                    Kasuta valitud asukohta
+                </button>
+            </div>
+
+            <p id="map-message">Võid kasutada seadme asukohta või klõpsata kaardil sobivale kohale.</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        const form = document.getElementById("free-time-form");
+        const timeInput = document.getElementById("free-time-input");
+        const timeUnit = document.getElementById("time-unit");
+        const locationSelect = document.getElementById("location");
+        const mapLocationOption = document.getElementById("map-location-option");
+        const locationStatus = document.getElementById("location-status");
+        const result = document.getElementById("result");
+
+        const toolsSelect = document.getElementById("tools-select");
+        const toolsButton = document.getElementById("tools-button");
+        const toolsMenu = document.getElementById("tools-menu");
+        const toolCheckboxes = [...toolsMenu.querySelectorAll('input[type="checkbox"]')];
+
+        const mapModal = document.getElementById("map-modal");
+        const openMapButton = document.getElementById("open-map-button");
+        const closeMapButton = document.getElementById("close-map-button");
+        const useDeviceLocationButton = document.getElementById("use-device-location");
+        const confirmMapLocationButton = document.getElementById("confirm-map-location");
+        const mapMessage = document.getElementById("map-message");
+
+        let map = null;
+        let marker = null;
+        let selectedCoordinates = null;
+
+        const mapResizeObserver = new ResizeObserver(() => {
+            if (map && mapModal.classList.contains("show")) {
+                map.invalidateSize({ pan: false });
+            }
+        });
+        mapResizeObserver.observe(document.getElementById("map"));
+
+        function getSelectedTools() {
+            return toolCheckboxes
+                .filter(checkbox => checkbox.checked)
+                .map(checkbox => checkbox.value);
+        }
+
+        function updateToolsButton() {
+            const selectedTools = getSelectedTools();
+
+            if (selectedTools.length === 0) {
+                toolsButton.textContent = "Vali vahend(id)";
+            } else if (selectedTools.length <= 2) {
+                toolsButton.textContent = selectedTools.join(", ");
+            } else {
+                toolsButton.textContent = `${selectedTools.length} vahendit valitud`;
+            }
+        }
+
+        toolsButton.addEventListener("click", () => {
+            const isOpen = toolsMenu.classList.toggle("show");
+            toolsButton.classList.toggle("open", isOpen);
+            toolsButton.setAttribute("aria-expanded", isOpen);
+        });
+
+        toolCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener("change", updateToolsButton);
+        });
+
+        document.addEventListener("click", event => {
+            if (!toolsSelect.contains(event.target)) {
+                toolsMenu.classList.remove("show");
+                toolsButton.classList.remove("open");
+                toolsButton.setAttribute("aria-expanded", "false");
+            }
+        });
+
+        function initMap() {
+            if (map) {
+                setTimeout(() => map.invalidateSize(), 50);
+                return;
+            }
+
+            map = L.map("map").setView([58.7, 25.3], 7);
+
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                maxZoom: 19,
+                attribution: "&copy; OpenStreetMap"
+            }).addTo(map);
+
+            map.on("click", event => {
+                setSelectedLocation(event.latlng.lat, event.latlng.lng, false);
+            });
+        }
+
+        function setSelectedLocation(lat, lng, fromDevice) {
+            selectedCoordinates = { lat, lng };
+
+            if (!marker) {
+                marker = L.marker([lat, lng]).addTo(map);
+            } else {
+                marker.setLatLng([lat, lng]);
+            }
+
+            map.setView([lat, lng], 16);
+            confirmMapLocationButton.disabled = false;
+
+            if (fromDevice) {
+                mapMessage.textContent = "Seadme asukoht leitud. Vajuta „Kasuta valitud asukohta“ või vali kaardilt teine koht.";
+            } else {
+                mapMessage.textContent = "Asukoht valitud kaardilt. Vajuta „Kasuta valitud asukohta“.";
+            }
+        }
+
+        function refreshMapSize() {
+            if (!map) return;
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    map.invalidateSize({ pan: false });
+                });
+            });
+
+            setTimeout(() => map.invalidateSize({ pan: false }), 250);
+        }
+
+        function openMap() {
+            mapModal.classList.add("show");
+            mapModal.setAttribute("aria-hidden", "false");
+            document.body.style.overflow = "hidden";
+            initMap();
+            refreshMapSize();
+        }
+
+        function closeMap() {
+            mapModal.classList.remove("show");
+            mapModal.setAttribute("aria-hidden", "true");
+            document.body.style.overflow = "";
+        }
+
+        openMapButton.addEventListener("click", openMap);
+        closeMapButton.addEventListener("click", closeMap);
+
+        mapModal.addEventListener("click", event => {
+            if (event.target === mapModal) {
+                closeMap();
+            }
+        });
+
+        document.addEventListener("keydown", event => {
+            if (event.key === "Escape" && mapModal.classList.contains("show")) {
+                closeMap();
+            }
+        });
+
+        useDeviceLocationButton.addEventListener("click", () => {
+            if (!navigator.geolocation) {
+                mapMessage.textContent = "Sinu brauser ei toeta seadme asukoha kasutamist.";
+                return;
+            }
+
+            useDeviceLocationButton.disabled = true;
+            useDeviceLocationButton.textContent = "Otsin asukohta...";
+            mapMessage.textContent = "Brauser võib küsida luba sinu asukoha kasutamiseks.";
+
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+
+                    setSelectedLocation(lat, lng, true);
+                    useDeviceLocationButton.disabled = false;
+                    useDeviceLocationButton.textContent = "Kasuta minu asukohta";
+                },
+                error => {
+                    let message = "Asukohta ei õnnestunud leida.";
+
+                    if (error.code === error.PERMISSION_DENIED) {
+                        message = "Asukohaluba ei antud. Luba brauseril asukohta kasutada või vali koht kaardilt.";
+                    } else if (error.code === error.POSITION_UNAVAILABLE) {
+                        message = "Seadme asukoht pole hetkel saadaval. Proovi uuesti või vali koht kaardilt.";
+                    } else if (error.code === error.TIMEOUT) {
+                        message = "Asukoha leidmine võttis liiga kaua. Proovi uuesti või vali koht kaardilt.";
+                    }
+
+                    mapMessage.textContent = message;
+                    useDeviceLocationButton.disabled = false;
+                    useDeviceLocationButton.textContent = "Kasuta minu asukohta";
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 60000
+                }
+            );
+        });
+
+        confirmMapLocationButton.addEventListener("click", () => {
+            if (!selectedCoordinates) {
+                return;
+            }
+
+            const lat = selectedCoordinates.lat.toFixed(5);
+            const lng = selectedCoordinates.lng.toFixed(5);
+
+            mapLocationOption.hidden = false;
+            mapLocationOption.value = `Kaardilt: ${lat}, ${lng}`;
+            mapLocationOption.textContent = `Kaardilt valitud (${lat}, ${lng})`;
+            locationSelect.value = mapLocationOption.value;
+
+            locationStatus.textContent = `Valitud asukoht: ${lat}, ${lng}`;
+            locationStatus.classList.add("show");
+
+            closeMap();
+        });
+
+        locationSelect.addEventListener("change", () => {
+            if (!locationSelect.value.startsWith("Kaardilt:")) {
+                locationStatus.classList.remove("show");
+            }
+        });
+
+        // Submit form asynchronously to Python backend via fetch
+        form.addEventListener("submit", async event => {
+            event.preventDefault();
+
+            const normalizedTime = timeInput.value.trim().replace(",", ".");
+            const timeNumber = Number(normalizedTime);
+
+            if (!Number.isFinite(timeNumber) || timeNumber <= 0) {
+                result.className = "error";
+                result.textContent = "Sisesta ajaks positiivne arv, näiteks 20 või 1,5.";
+                timeInput.focus();
+                return;
+            }
+
+            if (!locationSelect.value) {
+                result.className = "error";
+                result.textContent = "Vali asukoht või otsi see kaardilt.";
+                locationSelect.focus();
+                return;
+            }
+
+            result.className = "";
+            result.textContent = "Genereerin tegevust...";
+
+            const payload = {
+                free_time: normalizedTime,
+                time_unit: timeUnit.value,
+                location: locationSelect.value,
+                tools: getSelectedTools()
+            };
+
+            try {
+                const response = await fetch("/generate", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error("Serveri viga");
+                }
+
+                const data = await response.json();
+                result.textContent = data.result || data.message;
+            } catch (err) {
+                result.className = "error";
+                result.textContent = "Tekkis viga andmete saatmisel serverisse.";
+            }
+        });
+    </script>
+
+</body>
+</html>
