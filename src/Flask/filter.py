@@ -3,19 +3,15 @@ import random
 import sqlite3
 
 DATABASE_FILE = Path(__file__).with_name("database.db")
-
 TIME_LEVELS = {
     "0-15min": 1,
     "15-45min": 2,
     "45min-1.5h": 3,
 }
 
-
 def _normalize_requirement(value):
     """Normaliseeri andmebaasi nõude väärtus."""
     value = (value or "").strip()
-
-    # Andmebaasis on praegu üks kirjaviga: Paber-ja-Pliats.
     aliases = {
         "Paber-ja-Pliats": "Paber-ja-Pliiats",
     }
@@ -23,29 +19,16 @@ def _normalize_requirement(value):
 
 
 def _normalize_location(value):
-    """Normaliseeri andmebaasi asukohaväärtused."""
     value = (value or "").strip().lower()
-
     aliases = {
         "vaba õhk": "vaba õhk",
         "rahvarohke": "rahvarohke",
     }
     return aliases.get(value, value)
 
-
 def find_matching_activities(time_category, capabilities, location_category):
-    """
-    Leia tegevused, mis sobivad kasutaja aja, vahendite ja asukohaga.
-
-    - Lühema ajakategooria tegevus sobib ka siis, kui kasutajal on rohkem aega.
-    - Tühi requires1/requires2 tähendab, et tegevus seda vahendit ei nõua.
-    - Tühi location tähendab, et tegevusel pole konkreetset asukohanõuet.
-    - Kui kasutaja valib "Mitte midagi sobivat", sobivad ainult tegevused,
-      mille location on andmebaasis tühi.
-    """
     if time_category not in TIME_LEVELS:
         raise ValueError(f"Tundmatu ajakategooria: {time_category}")
-
     if not DATABASE_FILE.exists():
         raise FileNotFoundError(f"Andmebaasi ei leitud: {DATABASE_FILE}")
 
@@ -80,9 +63,6 @@ def find_matching_activities(time_category, capabilities, location_category):
             continue
 
         activity_location = _normalize_location(row["location"])
-
-        # Tühi asukohaväli tähendab, et tegevus sobib igal pool.
-        # Konkreetse asukohanõudega tegevus peab vastama kasutaja kategooriale.
         if activity_location:
             if not location_category or activity_location != location_category:
                 continue
@@ -98,16 +78,12 @@ def find_matching_activities(time_category, capabilities, location_category):
         })
 
     return matches
-
-
 def choose_activity(time_category, capabilities, location_category):
-    """Leia sobivad tegevused ja vali neist juhuslikult üks."""
     matches = find_matching_activities(
         time_category=time_category,
         capabilities=capabilities,
         location_category=location_category,
     )
-
     if not matches:
         return None
 
