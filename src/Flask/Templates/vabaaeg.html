@@ -41,8 +41,8 @@
 
         .logo {
             display: block;
-            max-width: 150px;
-            max-height: 90px;
+            max-width: 300px;
+            max-height: 180px;
             width: auto;
             height: auto;
             object-fit: contain;
@@ -163,6 +163,15 @@
             background: #ececec;
         }
 
+        .dropdown-option.limit-disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .dropdown-option.limit-disabled:hover {
+            background: transparent;
+        }
+
         .dropdown-option input {
             width: auto;
             min-height: auto;
@@ -219,24 +228,26 @@
 
         @media (max-width: 520px) {
             body {
-                padding: 14px;
+                align-items: flex-start;
+                padding: 92px 14px 14px;
             }
 
             .logo-link {
+                position: absolute;
                 top: 14px;
-                left: 14px;
+                left: 18px;
             }
 
             .logo {
-                max-width: 110px;
-                max-height: 70px;
+                max-width: 80px;
+                max-height: 60px;
             }
 
             .logo-placeholder {
-                width: 95px;
-                height: 95px;
-                padding: 10px;
-                font-size: 12px;
+                width: 72px;
+                height: 72px;
+                padding: 8px;
+                font-size: 10px;
             }
 
             .box {
@@ -358,6 +369,9 @@
         const toolsMenu = document.getElementById("tools-menu");
         const toolCheckboxes = [...toolsMenu.querySelectorAll('input[type="checkbox"]')];
 
+        // Siin määratakse, mitu vahendit saab korraga valida.
+        const MAX_SELECTED_TOOLS = 2;
+
         function getSelectedTools() {
             return toolCheckboxes
                 .filter(checkbox => checkbox.checked)
@@ -369,11 +383,19 @@
 
             if (selectedTools.length === 0) {
                 toolsButton.textContent = "Vali vahend(id)";
-            } else if (selectedTools.length <= 2) {
-                toolsButton.textContent = selectedTools.join(", ");
             } else {
-                toolsButton.textContent = `${selectedTools.length} vahendit valitud`;
+                toolsButton.textContent = selectedTools.join(", ");
             }
+        }
+
+        function updateToolsLimit() {
+            const selectedCount = getSelectedTools().length;
+
+            toolCheckboxes.forEach(checkbox => {
+                const shouldDisable = selectedCount >= MAX_SELECTED_TOOLS && !checkbox.checked;
+                checkbox.disabled = shouldDisable;
+                checkbox.closest(".dropdown-option")?.classList.toggle("limit-disabled", shouldDisable);
+            });
         }
 
         toolsButton.addEventListener("click", () => {
@@ -383,8 +405,13 @@
         });
 
         toolCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener("change", updateToolsButton);
+            checkbox.addEventListener("change", () => {
+                updateToolsButton();
+                updateToolsLimit();
+            });
         });
+
+        updateToolsLimit();
 
         document.addEventListener("click", event => {
             if (!toolsSelect.contains(event.target)) {
@@ -446,17 +473,15 @@
                     return;
                 }
 
-                const card = document.createElement("div");
-                card.className = "activity-result";
+                const resultData = {
+                    aeg: timeNumber,
+                    asukoht: locationSelect.value,
+                    vahendid: selectedTools,
+                    activity: responseData.activity
+                };
 
-                const title = document.createElement("h2");
-                title.textContent = responseData.activity.name;
-
-                const instructions = document.createElement("p");
-                instructions.textContent = responseData.activity.instructions;
-
-                card.append(title, instructions);
-                result.appendChild(card);
+                sessionStorage.setItem("generatedActivity", JSON.stringify(resultData));
+                window.location.href = "{{ url_for('result_page') }}";
             } catch (error) {
                 console.error(error);
                 result.className = "error";

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genereeritud tegevus</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #111;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 24px;
+        }
+
+        .logo-link {
+            position: fixed;
+            top: 24px;
+            left: 24px;
+            z-index: 100;
+            display: block;
+        }
+
+        .logo {
+            display: block;
+            max-width: 300px;
+            max-height: 180px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .logo-placeholder {
+            display: none;
+            width: 120px;
+            height: 120px;
+            border: 2px solid white;
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            padding: 14px;
+            text-align: center;
+            color: white;
+            font-size: 14px;
+            line-height: 1.25;
+            background: #1b1b1b;
+        }
+
+        .page {
+            width: min(94%, 920px);
+            margin: 0 auto;
+            padding: 90px 0 30px;
+        }
+
+        .top-row {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 26px;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 46px;
+            padding: 11px 18px;
+            border: 1px solid #777;
+            border-radius: 9px;
+            background: #2a2a2a;
+            color: white;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .back-button:hover {
+            background: #363636;
+        }
+
+        .result-shell {
+            padding: 32px;
+            border: 2px solid white;
+            border-radius: 18px;
+            background: #1b1b1b;
+        }
+
+        .eyebrow {
+            margin: 0 0 10px;
+            color: #bdbdbd;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .activity-title {
+            margin: 0;
+            padding: 22px 24px;
+            border-radius: 12px;
+            background: white;
+            color: #111;
+            text-align: center;
+            font-size: clamp(26px, 4vw, 40px);
+            line-height: 1.15;
+        }
+
+        .instructions-card {
+            margin-top: 16px;
+            padding: 24px;
+            border: 1px solid #777;
+            border-radius: 12px;
+            background: #151515;
+        }
+
+        .instructions-card h2 {
+            margin: 0 0 10px;
+            font-size: 18px;
+        }
+
+        .instructions-card p {
+            margin: 0;
+            color: #ededed;
+            font-size: 17px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .choices-title {
+            margin: 30px 0 14px;
+            font-size: 18px;
+        }
+
+        .choices-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .choice-card {
+            min-height: 112px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 18px;
+            border: 1px solid #777;
+            border-radius: 14px;
+            background: #202020;
+            text-align: center;
+        }
+
+        .choice-label {
+            margin-bottom: 8px;
+            color: #bdbdbd;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .choice-value {
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.3;
+            overflow-wrap: anywhere;
+        }
+
+        .empty-message {
+            padding: 28px;
+            border: 2px solid white;
+            border-radius: 16px;
+            background: #1b1b1b;
+            text-align: center;
+        }
+
+        .empty-message h1 {
+            margin-top: 0;
+        }
+
+        .empty-message p {
+            color: #ccc;
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 14px;
+            }
+
+            .logo-link {
+                position: absolute;
+                top: 14px;
+                left: 18px;
+            }
+
+            .logo {
+                max-width: 80px;
+                max-height: 60px;
+            }
+
+            .logo-placeholder {
+                width: 72px;
+                height: 72px;
+                padding: 8px;
+                font-size: 10px;
+            }
+
+            .page {
+                width: 100%;
+                padding-top: 86px;
+            }
+
+            .top-row {
+                margin-bottom: 16px;
+            }
+
+            .result-shell {
+                padding: 20px 16px;
+                border-radius: 16px;
+            }
+
+            .activity-title {
+                padding: 18px 16px;
+                font-size: 28px;
+            }
+
+            .instructions-card {
+                padding: 18px;
+            }
+
+            .choices-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .choice-card {
+                min-height: 86px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <a class="logo-link" href="{{ url_for('home') }}" aria-label="Tagasi avalehele">
+        <img
+            class="logo"
+            src="{{ url_for('static', filename='Idee Suure I-ga.png') }}"
+            alt="Logo"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        >
+        <div class="logo-placeholder">Kujuta ette, et siin on logo!</div>
+    </a>
+
+    <main class="page">
+        <div class="top-row">
+            <a class="back-button" href="{{ url_for('free_time') }}">← Tagasi valikute juurde</a>
+        </div>
+
+        <section id="result-content" class="result-shell" hidden>
+            <p class="eyebrow">Sinu genereeritud tegevus</p>
+            <h1 id="activity-title" class="activity-title"></h1>
+
+            <div class="instructions-card">
+                <h2>Kuidas seda teha?</h2>
+                <p id="activity-instructions"></p>
+            </div>
+
+            <h2 class="choices-title">Sinu valikud</h2>
+            <div class="choices-grid">
+                <div class="choice-card">
+                    <span class="choice-label">Aeg</span>
+                    <span id="choice-time" class="choice-value"></span>
+                </div>
+
+                <div class="choice-card">
+                    <span class="choice-label">Asukoht</span>
+                    <span id="choice-location" class="choice-value"></span>
+                </div>
+
+                <div class="choice-card">
+                    <span class="choice-label">Vahendid</span>
+                    <span id="choice-tools" class="choice-value"></span>
+                </div>
+            </div>
+        </section>
+
+        <section id="empty-message" class="empty-message" hidden>
+            <h1>Tulemust ei leitud</h1>
+            <p>Genereeritud tegevuse andmeid ei leitud. Mine tagasi ja genereeri uus tegevus.</p>
+            <a class="back-button" href="{{ url_for('free_time') }}">Tagasi valikute juurde</a>
+        </section>
+    </main>
+
+    <script>
+        const storedResult = sessionStorage.getItem("generatedActivity");
+        const resultContent = document.getElementById("result-content");
+        const emptyMessage = document.getElementById("empty-message");
+
+        if (!storedResult) {
+            emptyMessage.hidden = false;
+        } else {
+            try {
+                const data = JSON.parse(storedResult);
+
+                document.getElementById("activity-title").textContent = data.activity?.name || "Tegevus";
+                document.getElementById("activity-instructions").textContent = data.activity?.instructions || "Juhised puuduvad.";
+                document.getElementById("choice-time").textContent = `${data.aeg} min`;
+                document.getElementById("choice-location").textContent = data.asukoht || "-";
+                document.getElementById("choice-tools").textContent =
+                    Array.isArray(data.vahendid) && data.vahendid.length > 0
+                        ? data.vahendid.join(", ")
+                        : "Vahendeid pole valitud";
+
+                resultContent.hidden = false;
+            } catch (error) {
+                console.error(error);
+                emptyMessage.hidden = false;
+            }
+        }
+    </script>
+
+</body>
+</html>
