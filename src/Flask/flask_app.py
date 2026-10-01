@@ -15,28 +15,33 @@ def free_time():
     return render_template("vabaaeg.html")
 
 
+@app.route("/tulemus")
+def result_page():
+    return render_template("tulemus.html")
+
+
 def convert_minutes_to_category(value):
     """Teisenda veebist saadud minutite arv andmebaasi ajakategooriaks."""
     try:
         minutes = float(str(value).replace(",", "."))
     except (TypeError, ValueError):
-        raise ValueError("Aeg peab olema arv minutites.")
+        raise ValueError("Aeg peab olema arv.")
 
     if minutes <= 0:
-        raise ValueError("Aeg peab olema suurem kui 0 minutit.")
+        raise ValueError("Aeg peab olema suurem kui 0.")
 
     if minutes <= 15:
         return "0-15min"
     if minutes <= 45:
         return "15-45min"
 
-    # Andmebaasi pikim ajakategooria on 45 min - 1,5 h.
-    # Kui kasutajal on rohkem aega, võib talle endiselt pakkuda selle kategooria tegevusi.
+    # Andmebaasi pikim kategooria on 45 min - 1,5 h.
+    # Kui kasutajal on rohkem aega, saavad sobida ka selle kategooria tegevused.
     return "45min-1.5h"
 
 
 def convert_tools_to_capabilities(tools):
-    """Teisenda veebilehel valitud vahendid andmebaasi nõuete kujule."""
+    """Teisenda veebilehe vahendid andmebaasi nõuete kujule."""
     if not isinstance(tools, list):
         tools = []
 
@@ -59,7 +64,7 @@ def convert_tools_to_capabilities(tools):
 
 
 def convert_location_to_category(location):
-    """Teisenda veebilehe konkreetne asukoht andmebaasi üldiseks asukohakategooriaks."""
+    """Teisenda veebilehe asukohavalik andmebaasi üldiseks asukohakategooriaks."""
     location = str(location or "").strip()
 
     mapping = {
@@ -68,13 +73,11 @@ def convert_location_to_category(location):
         "Park": "vaba õhk",
         "Raamatukogu": "rahvarohke",
         "Buss": "rahvarohke",
-        # Kui ükski etteantud koht ei sobi, pakutakse ainult tegevusi,
-        # millel andmebaasis puudub konkreetne asukohanõue.
         "Mitte midagi sobivat": "",
     }
 
     if location not in mapping:
-        raise ValueError("Vali asukoht rippmenüüst.")
+        raise ValueError("Tundmatu asukoht.")
 
     return mapping[location]
 
