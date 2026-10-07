@@ -290,12 +290,9 @@
                 <label for="location">Kus sa asud?</label>
                 <select id="location" required>
                     <option value="" selected disabled>Vali asukoht</option>
-                    <option value="Haigla ooteruum">Haigla ooteruum</option>
-                    <option value="Bussipeatus/jaam">Bussipeatus/jaam</option>
-                    <option value="Park">Park</option>
-                    <option value="Raamatukogu">Raamatukogu</option>
-                    <option value="Buss">Buss</option>
-                    <option value="Mitte midagi sobivat">Mitte midagi sobivat</option>
+                    {% for location in available_locations %}
+                        <option value="{{ location }}">{{ location|capitalize }}</option>
+                    {% endfor %}
                 </select>
             </div>
 
@@ -313,40 +310,12 @@
                     </button>
 
                     <div class="dropdown-menu" id="tools-menu">
-                        <label class="dropdown-option">
-                            <input type="checkbox" value="Pliiats">
-                            Pliiats
-                        </label>
-
-                        <label class="dropdown-option">
-                            <input type="checkbox" value="Paber">
-                            Paber
-                        </label>
-
-                        <label class="dropdown-option">
-                            <input type="checkbox" value="Raamat">
-                            Raamat
-                        </label>
-
-                        <label class="dropdown-option">
-                            <input type="checkbox" value="Laetud telefon">
-                            Laetud telefon
-                        </label>
-
-                        <label class="dropdown-option">
-                            <input type="checkbox" value="Wi-Fi/andmeside">
-                            Wi-Fi/andmeside
-                        </label>
-
-                        <label class="dropdown-option">
-                            <input type="checkbox" value="Teine isik (võõras)">
-                            Teine isik (võõras)
-                        </label>
-
-                        <label class="dropdown-option">
-                            <input type="checkbox" value="Teine isik (tuttav)">
-                            Teine isik (tuttav)
-                        </label>
+                        {% for requirement in available_requirements %}
+                            <label class="dropdown-option">
+                                <input type="checkbox" value="{{ requirement }}">
+                                {{ requirement }}
+                            </label>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
