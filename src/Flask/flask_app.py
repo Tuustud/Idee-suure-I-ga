@@ -1,6 +1,10 @@
 from flask import Flask, jsonify, render_template, request
 
-from filter import choose_activity
+from filter import (
+    choose_activity,
+    get_available_locations,
+    get_available_requirements,
+)
 
 app = Flask(__name__)
 
@@ -12,7 +16,20 @@ def home():
 
 @app.route("/vabaaeg")
 def free_time():
-    return render_template("vabaaeg.html")
+    """Loe valikute loetelud andmebaasist ja anna need HTML-ile."""
+    try:
+        requirements = get_available_requirements()
+        locations = get_available_locations()
+    except FileNotFoundError:
+        app.logger.exception("Andmebaasi ei leitud")
+        requirements = []
+        locations = []
+
+    return render_template(
+        "vabaaeg.html",
+        available_requirements=requirements,
+        available_locations=locations,
+    )
 
 
 @app.route("/tulemus")
@@ -21,7 +38,7 @@ def result_page():
 
 
 def convert_minutes_to_category(value):
-    """Teisenda veebist saadud minutite arv andmebaasi ajakategooriaks."""
+    """Teisenda minutite arv andmebaasi ajakategooriaks."""
     try:
         minutes = float(str(value).replace(",", "."))
     except (TypeError, ValueError):
@@ -36,50 +53,40 @@ def convert_minutes_to_category(value):
         return "15-45min"
 
     # Andmebaasi pikim kategooria on 45 min - 1,5 h.
-    # Kui kasutajal on rohkem aega, saavad sobida ka selle kategooria tegevused.
     return "45min-1.5h"
 
 
-def convert_tools_to_capabilities(tools):
-    """Teisenda veebilehe vahendid andmebaasi nõuete kujule."""
-    if not isinstance(tools, list):
-        tools = []
+def validate_requirements(requirements):
+    """Kontrolli, et valitud nõuded pärinevad andmebaasist."""
+    if not isinstance(requirements, list):
+        raise ValueError("Vahendite valik peab olema loetelu.")
 
-    selected = {str(tool).strip() for tool in tools}
-    capabilities = set()
+    cleaned = [str(value).strip() for value in requirements if str(value).strip()]
 
-    if "Paber" in selected and "Pliiats" in selected:
-        capabilities.add("Paber-ja-Pliiats")
+    if len(cleaned) > 2:
+        raise ValueError("Valida saab maksimaalselt 2 vahendit.")
 
-    if "Laetud telefon" in selected:
-        capabilities.add("Telefon/Arvuti")
+    available = set(get_available_requirements())
+    unknown = [value for value in cleaned if value not in available]
 
-    if "Wi-Fi/andmeside" in selected:
-        capabilities.add("Wi-Fi/andmeside")
+    if unknown:
+        raise ValueError("Valitud vahendit andmebaasis ei ole.")
 
-    if "Teine isik (võõras)" in selected or "Teine isik (tuttav)" in selected:
-        capabilities.add("teine inimene")
-
-    return capabilities
+    return set(cleaned)
 
 
-def convert_location_to_category(location):
-    """Teisenda veebilehe asukohavalik andmebaasi üldiseks asukohakategooriaks."""
-    location = str(location or "").strip()
+def validate_location(location):
+    """Kontrolli, et valitud asukoht pärineb andmebaasist."""
+    location = str(location or "").strip().lower()
 
-    mapping = {
-        "Haigla ooteruum": "rahvarohke",
-        "Bussipeatus/jaam": "rahvarohke",
-        "Park": "vaba õhk",
-        "Raamatukogu": "rahvarohke",
-        "Buss": "rahvarohke",
-        "Mitte midagi sobivat": "",
-    }
+    if not location:
+        raise ValueError("Vali asukoht.")
 
-    if location not in mapping:
-        raise ValueError("Tundmatu asukoht.")
+    available = set(get_available_locations())
+    if location not in available:
+        raise ValueError("Valitud asukohta andmebaasis ei ole.")
 
-    return mapping[location]
+    return location
 
 
 @app.route("/genereeri", methods=["POST"])
@@ -92,8 +99,8 @@ def generate_activity():
 
     try:
         time_category = convert_minutes_to_category(data.get("aeg"))
-        capabilities = convert_tools_to_capabilities(data.get("vahendid", []))
-        location_category = convert_location_to_category(data.get("asukoht"))
+        capabilities = validate_requirements(data.get("vahendid", []))
+        location_category = validate_location(data.get("asukoht"))
 
         activity = choose_activity(
             time_category=time_category,
