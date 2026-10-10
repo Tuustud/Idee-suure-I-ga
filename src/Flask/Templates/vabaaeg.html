@@ -275,15 +275,13 @@
 
         <form id="free-time-form">
             <div class="question">
-                <label for="free-time-input">Mitu minutit vaba aega sul on?</label>
-                <input
-                    id="free-time-input"
-                    type="text"
-                    inputmode="decimal"
-                    placeholder="Näiteks 20"
-                    autocomplete="off"
-                    required
-                >
+                <label for="time-category">Kui palju vaba aega sul on?</label>
+                <select id="time-category" required>
+                    <option value="" selected disabled>Vali ajavahemik</option>
+                    {% for time_range in available_times %}
+                        <option value="{{ time_range }}">{{ time_range }}</option>
+                    {% endfor %}
+                </select>
             </div>
 
             <div class="question">
@@ -329,7 +327,7 @@
 
     <script>
         const form = document.getElementById("free-time-form");
-        const timeInput = document.getElementById("free-time-input");
+        const timeSelect = document.getElementById("time-category");
         const locationSelect = document.getElementById("location");
         const result = document.getElementById("result");
 
@@ -393,13 +391,10 @@
         form.addEventListener("submit", async event => {
             event.preventDefault();
 
-            const normalizedTime = timeInput.value.trim().replace(",", ".");
-            const timeNumber = Number(normalizedTime);
-
-            if (!Number.isFinite(timeNumber) || timeNumber <= 0) {
+            if (!timeSelect.value) {
                 result.className = "error";
-                result.textContent = "Sisesta positiivne minutite arv, näiteks 20.";
-                timeInput.focus();
+                result.textContent = "Vali ajavahemik.";
+                timeSelect.focus();
                 return;
             }
 
@@ -422,7 +417,7 @@
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        aeg: timeNumber,
+                        aeg: timeSelect.value,
                         asukoht: locationSelect.value,
                         vahendid: selectedTools
                     })
@@ -443,7 +438,7 @@
                 }
 
                 const resultData = {
-                    aeg: timeNumber,
+                    aeg: timeSelect.value,
                     asukoht: locationSelect.value,
                     vahendid: selectedTools,
                     activity: responseData.activity

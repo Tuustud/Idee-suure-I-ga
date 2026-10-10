@@ -307,7 +307,7 @@
 
                 document.getElementById("activity-title").textContent = data.activity?.name || "Tegevus";
                 document.getElementById("activity-instructions").textContent = data.activity?.instructions || "Juhised puuduvad.";
-                document.getElementById("choice-time").textContent = `${data.aeg} min`;
+                document.getElementById("choice-time").textContent = data.aeg || "-";
                 document.getElementById("choice-location").textContent = data.asukoht || "-";
                 document.getElementById("choice-tools").textContent =
                     Array.isArray(data.vahendid) && data.vahendid.length > 0
