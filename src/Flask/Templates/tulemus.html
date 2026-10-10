@@ -29,7 +29,7 @@
 
         .logo {
             display: block;
-            max-width: 300px;
+            max-width: 180px;
             max-height: 180px;
             width: auto;
             height: auto;
@@ -186,50 +186,87 @@
             color: #ccc;
         }
 
-        @media (max-width: 700px) {
+        /* Tahvelarvuti ja väiksema läpaka vaade */
+        @media (min-width: 701px) and (max-width: 1300px) {
             body {
-                padding: 14px;
+                padding: 20px;
             }
 
             .logo-link {
                 position: absolute;
-                top: 14px;
-                left: 18px;
+                top: 18px;
+                left: 50%;
+                transform: translateX(-50%);
             }
 
             .logo {
-                max-width: 80px;
-                max-height: 60px;
+                max-width: 150px;
+                max-height: 150px;
             }
 
             .logo-placeholder {
-                width: 72px;
-                height: 72px;
-                padding: 8px;
-                font-size: 10px;
+                width: 150px;
+                height: 150px;
             }
 
             .page {
-                width: 100%;
-                padding-top: 86px;
+                width: min(92%, 820px);
+                padding-top: 155px;
             }
 
             .top-row {
-                margin-bottom: 16px;
+                margin-bottom: 20px;
+            }
+        }
+
+        /* Telefoni vaade */
+        @media (max-width: 700px) {
+            body {
+                padding: 14px 0 24px;
+            }
+
+            .logo-link {
+                position: absolute;
+                top: 18px;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+
+            .logo {
+                max-width: 120px;
+                max-height: 120px;
+            }
+
+            .logo-placeholder {
+                width: 100px;
+                height: 100px;
+                padding: 10px;
+                font-size: 11px;
+            }
+
+            .page {
+                width: 92%;
+                padding-top: 145px;
+            }
+
+            .top-row {
+                margin-bottom: 20px;
             }
 
             .result-shell {
-                padding: 20px 16px;
+                width: 94%;
+                margin: 0 auto;
+                padding: 24px 14px;
                 border-radius: 16px;
             }
 
             .activity-title {
-                padding: 18px 16px;
+                padding: 18px 14px;
                 font-size: 28px;
             }
 
             .instructions-card {
-                padding: 18px;
+                padding: 18px 16px;
             }
 
             .choices-grid {
@@ -237,7 +274,7 @@
             }
 
             .choice-card {
-                min-height: 86px;
+                min-height: 90px;
             }
         }
     </style>
