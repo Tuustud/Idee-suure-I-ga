@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vaba aeg</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #111;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 24px;
+        }
+
+        .box {
+            width: min(90%, 500px);
+            padding: 35px;
+            text-align: center;
+            border: 2px solid white;
+            border-radius: 16px;
+            background: #1b1b1b;
+            margin-top: 20px;
+        }
+
+        .logo-link {
+            position: fixed;
+            top: 24px;
+            left: 24px;
+            z-index: 1100;
+            display: block;
+        }
+
+        .logo {
+            display: block;
+            max-width: 300px;
+            max-height: 180px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .logo-placeholder {
+            display: none;
+            width: 120px;
+            height: 120px;
+            border: 2px solid white;
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            padding: 14px;
+            text-align: center;
+            color: white;
+            font-size: 14px;
+            line-height: 1.25;
+            background: #1b1b1b;
+        }
+
+        h1 {
+            margin: 0 0 12px;
+            font-size: 28px;
+        }
+
+        .question {
+            margin-top: 28px;
+            text-align: left;
+        }
+
+        .question:first-of-type {
+            margin-top: 20px;
+        }
+
+        label,
+        .question-title {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        input,
+        select,
+        .dropdown-button {
+            width: 100%;
+            min-height: 46px;
+            padding: 12px;
+            border: 1px solid #777;
+            border-radius: 8px;
+            background: white;
+            color: #111;
+            font-size: 16px;
+        }
+
+        input:focus,
+        select:focus,
+        .dropdown-button:focus {
+            outline: 2px solid white;
+            outline-offset: 2px;
+        }
+
+        .multi-select {
+            position: relative;
+        }
+
+        .dropdown-button {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .dropdown-button::after {
+            content: "▾";
+            font-size: 18px;
+            margin-left: 10px;
+        }
+
+        .dropdown-button.open::after {
+            content: "▴";
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: calc(100% + 8px);
+            z-index: 20;
+            padding: 8px;
+            border: 1px solid #777;
+            border-radius: 8px;
+            background: white;
+            color: #111;
+            text-align: left;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: normal;
+            margin: 0;
+        }
+
+        .dropdown-option:hover {
+            background: #ececec;
+        }
+
+        .dropdown-option.limit-disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .dropdown-option.limit-disabled:hover {
+            background: transparent;
+        }
+
+        .dropdown-option input {
+            width: auto;
+            min-height: auto;
+            margin: 0;
+            padding: 0;
+        }
+
+        .submit-button {
+            width: 100%;
+            margin-top: 30px;
+            padding: 13px 24px;
+            border: none;
+            border-radius: 8px;
+            background: white;
+            color: #111;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .submit-button:hover {
+            background: #e6e6e6;
+        }
+
+        #result {
+            margin-top: 22px;
+            font-size: 16px;
+            line-height: 1.5;
+            min-height: 24px;
+        }
+
+        .activity-result {
+            margin-top: 22px;
+            padding: 18px;
+            border: 1px solid #777;
+            border-radius: 10px;
+            background: #151515;
+            text-align: left;
+        }
+
+        .activity-result h2 {
+            margin: 0 0 10px;
+            font-size: 21px;
+        }
+
+        .activity-result p {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+
+        .error {
+            color: #ffb3b3;
+        }
+
+        @media (max-width: 520px) {
+            body {
+                align-items: flex-start;
+                padding: 92px 14px 14px;
+            }
+
+            .logo-link {
+                position: absolute;
+                top: 14px;
+                left: 18px;
+            }
+
+            .logo {
+                max-width: 80px;
+                max-height: 60px;
+            }
+
+            .logo-placeholder {
+                width: 72px;
+                height: 72px;
+                padding: 8px;
+                font-size: 10px;
+            }
+
+            .box {
+                width: 100%;
+                padding: 24px 18px;
+            }
+
+        }
+    </style>
+</head>
+<body>
+
+    <a class="logo-link" href="{{ url_for('home') }}" aria-label="Tagasi avalehele">
+        <img
+            class="logo"
+            src="{{ url_for('static', filename='Idee Suure I-ga.png') }}"
+            alt="Logo"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        >
+        <div class="logo-placeholder">Kujuta ette, et siin on logo!</div>
+    </a>
+
+    <div class="box">
+        <h1>Tee oma valikud ja ma genereerin sulle tegevuse!</h1>
+
+        <form id="free-time-form">
+            <div class="question">
+                <label for="time-category">Kui palju vaba aega sul on?</label>
+                <select id="time-category" required>
+                    <option value="" selected disabled>Vali ajavahemik</option>
+                    {% for time_range in available_times %}
+                        <option value="{{ time_range }}">{{ time_range }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="question">
+                <label for="location">Kus sa asud?</label>
+                <select id="location" required>
+                    <option value="" selected disabled>Vali asukoht</option>
+                    {% for location in available_locations %}
+                        <option value="{{ location }}">{{ location|capitalize }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="question">
+                <span class="question-title">Mis vahendid sul käeulatuses on?</span>
+
+                <div class="multi-select" id="tools-select">
+                    <button
+                        class="dropdown-button"
+                        id="tools-button"
+                        type="button"
+                        aria-expanded="false"
+                    >
+                        Vali vahend(id)
+                    </button>
+
+                    <div class="dropdown-menu" id="tools-menu">
+                        {% for requirement in available_requirements %}
+                            <label class="dropdown-option">
+                                <input type="checkbox" value="{{ requirement }}">
+                                {{ requirement }}
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <button class="submit-button" type="submit">Genereeri tegevus</button>
+        </form>
+
+        <div id="result" aria-live="polite"></div>
+
+    </div>
+
+    <script>
+        const form = document.getElementById("free-time-form");
+        const timeSelect = document.getElementById("time-category");
+        const locationSelect = document.getElementById("location");
+        const result = document.getElementById("result");
+
+        const toolsSelect = document.getElementById("tools-select");
+        const toolsButton = document.getElementById("tools-button");
+        const toolsMenu = document.getElementById("tools-menu");
+        const toolCheckboxes = [...toolsMenu.querySelectorAll('input[type="checkbox"]')];
+
+        // Siin määratakse, mitu vahendit saab korraga valida.
+        const MAX_SELECTED_TOOLS = 2;
+
+        function getSelectedTools() {
+            return toolCheckboxes
+                .filter(checkbox => checkbox.checked)
+                .map(checkbox => checkbox.value);
+        }
+
+        function updateToolsButton() {
+            const selectedTools = getSelectedTools();
+
+            if (selectedTools.length === 0) {
+                toolsButton.textContent = "Vali vahend(id)";
+            } else {
+                toolsButton.textContent = selectedTools.join(", ");
+            }
+        }
+
+        function updateToolsLimit() {
+            const selectedCount = getSelectedTools().length;
+
+            toolCheckboxes.forEach(checkbox => {
+                const shouldDisable = selectedCount >= MAX_SELECTED_TOOLS && !checkbox.checked;
+                checkbox.disabled = shouldDisable;
+                checkbox.closest(".dropdown-option")?.classList.toggle("limit-disabled", shouldDisable);
+            });
+        }
+
+        toolsButton.addEventListener("click", () => {
+            const isOpen = toolsMenu.classList.toggle("show");
+            toolsButton.classList.toggle("open", isOpen);
+            toolsButton.setAttribute("aria-expanded", isOpen);
+        });
+
+        toolCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener("change", () => {
+                updateToolsButton();
+                updateToolsLimit();
+            });
+        });
+
+        updateToolsLimit();
+
+        document.addEventListener("click", event => {
+            if (!toolsSelect.contains(event.target)) {
+                toolsMenu.classList.remove("show");
+                toolsButton.classList.remove("open");
+                toolsButton.setAttribute("aria-expanded", "false");
+            }
+        });
+
+        form.addEventListener("submit", async event => {
+            event.preventDefault();
+
+            if (!timeSelect.value) {
+                result.className = "error";
+                result.textContent = "Vali ajavahemik.";
+                timeSelect.focus();
+                return;
+            }
+
+            if (!locationSelect.value) {
+                result.className = "error";
+                result.textContent = "Vali asukoht.";
+                locationSelect.focus();
+                return;
+            }
+
+            const selectedTools = getSelectedTools();
+
+            result.className = "";
+            result.textContent = "Otsin sobivat tegevust...";
+
+            try {
+                const response = await fetch("{{ url_for('generate_activity') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        aeg: timeSelect.value,
+                        asukoht: locationSelect.value,
+                        vahendid: selectedTools
+                    })
+                });
+
+                const responseData = await response.json().catch(() => ({}));
+
+                if (!response.ok || responseData.success !== true) {
+                    throw new Error(responseData.error || "Tegevuse genereerimine ebaõnnestus.");
+                }
+
+                result.className = "";
+                result.replaceChildren();
+
+                if (!responseData.found) {
+                    result.textContent = responseData.message || "Sobivat tegevust ei leitud.";
+                    return;
+                }
+
+                const resultData = {
+                    aeg: timeSelect.value,
+                    asukoht: locationSelect.value,
+                    vahendid: selectedTools,
+                    activity: responseData.activity
+                };
+
+                sessionStorage.setItem("generatedActivity", JSON.stringify(resultData));
+                window.location.href = "{{ url_for('result_page') }}";
+            } catch (error) {
+                console.error(error);
+                result.className = "error";
+                result.textContent = error.message || "Tegevuse genereerimine ebaõnnestus.";
+            }
+        });
+    </script>
+
+</body>
+</html>
