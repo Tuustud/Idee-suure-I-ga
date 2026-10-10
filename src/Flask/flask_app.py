@@ -4,6 +4,7 @@ from filter import (
     choose_activity,
     get_available_locations,
     get_available_requirements,
+    get_available_times,
 )
 
 app = Flask(__name__)
@@ -18,15 +19,18 @@ def home():
 def free_time():
     """Loe valikute loetelud andmebaasist ja anna need HTML-ile."""
     try:
+        times = get_available_times()
         requirements = get_available_requirements()
         locations = get_available_locations()
     except FileNotFoundError:
         app.logger.exception("Andmebaasi ei leitud")
+        times = []
         requirements = []
         locations = []
 
     return render_template(
         "vabaaeg.html",
+        available_times=times,
         available_requirements=requirements,
         available_locations=locations,
     )
@@ -37,23 +41,18 @@ def result_page():
     return render_template("tulemus.html")
 
 
-def convert_minutes_to_category(value):
-    """Teisenda minutite arv andmebaasi ajakategooriaks."""
-    try:
-        minutes = float(str(value).replace(",", "."))
-    except (TypeError, ValueError):
-        raise ValueError("Aeg peab olema arv.")
+def validate_time_category(value):
+    """Kontrolli, et valitud ajavahemik pärineb andmebaasist."""
+    value = str(value or "").strip()
 
-    if minutes <= 0:
-        raise ValueError("Aeg peab olema suurem kui 0.")
+    if not value:
+        raise ValueError("Vali ajavahemik.")
 
-    if minutes <= 15:
-        return "0-15min"
-    if minutes <= 45:
-        return "15-45min"
+    available = set(get_available_times())
+    if value not in available:
+        raise ValueError("Valitud ajavahemikku andmebaasis ei ole.")
 
-    # Andmebaasi pikim kategooria on 45 min - 1,5 h.
-    return "45min-1.5h"
+    return value
 
 
 def validate_requirements(requirements):
@@ -98,7 +97,7 @@ def generate_activity():
         return jsonify({"success": False, "error": "Vigane päring."}), 400
 
     try:
-        time_category = convert_minutes_to_category(data.get("aeg"))
+        time_category = validate_time_category(data.get("aeg"))
         capabilities = validate_requirements(data.get("vahendid", []))
         location_category = validate_location(data.get("asukoht"))
 

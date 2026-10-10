@@ -32,6 +32,29 @@ def _check_database():
         raise FileNotFoundError(f"Andmebaasi ei leitud: {DATABASE_FILE}")
 
 
+def get_available_times():
+    """Tagasta time veeru unikaalsed mittetühjad ajavahemikud."""
+    _check_database()
+
+    with sqlite3.connect(DATABASE_FILE) as conn:
+        rows = conn.execute(
+            """
+            SELECT DISTINCT time
+            FROM items
+            WHERE TRIM(COALESCE(time, '')) <> ''
+            """
+        ).fetchall()
+
+    times = {(row[0] or "").strip() for row in rows if (row[0] or "").strip()}
+
+    # Tuntud ajavahemikud kuvatakse loogilises pikkuse järjekorras.
+    # Kui andmebaasi lisatakse uus ajavahemik, jääb see samuti loetellu.
+    return sorted(
+        times,
+        key=lambda value: (TIME_LEVELS.get(value, 999), value.casefold()),
+    )
+
+
 def get_available_requirements():
     """Tagasta requires1 ja requires2 veergude unikaalsed mittetühjad väärtused."""
     _check_database()
