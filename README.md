@@ -12,3 +12,5 @@ Meie ideedegeneraatori algallikas: https://www.youtube.com/watch?v=rnZorHI_Y28
 Veebilehe link: https://ideesuureiga.pythonanywhere.com/
 
 Paberdisain: https://canva.link/ehgepysrctvos2q
+
+esialgse filteriprogrammi jaoks on vaja databaas
