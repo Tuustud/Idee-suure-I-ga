@@ -13,4 +13,8 @@ Veebilehe link: https://ideesuureiga.pythonanywhere.com/
 
 Paberdisain: https://canva.link/ehgepysrctvos2q
 
-esialgse filteriprogrammi jaoks on vaja databaas
+esialgse filteriprogrammi jaoks on vaja databaasi.
+
+Filter - vana prototüüp- Aleksander
+Databaas- Rauno
+Flaski template- Roland
